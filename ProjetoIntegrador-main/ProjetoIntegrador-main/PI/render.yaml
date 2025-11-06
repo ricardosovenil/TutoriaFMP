@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: ProjetoIntegrador
+    env: docker
+    plan: free
+    region: oregon
+    branch: main
+    rootDir: ProjetoIntegrador-main/PI
+    dockerfilePath: ProjetoIntegrador-main/PI/Dockerfile
