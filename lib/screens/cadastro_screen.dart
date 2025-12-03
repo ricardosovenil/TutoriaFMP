@@ -20,11 +20,9 @@ class _CadastroScreenState extends State<CadastroScreen> {
   final _confirmarSenhaController = TextEditingController();
   bool _isLoading = false;
 
-  // Arquivos
   File? _fotoPerfilFile;
   File? _curriculoFile;
 
-  // Campos específicos
   final _matriculaController = TextEditingController();
   final _cursoController = TextEditingController();
 
@@ -109,8 +107,16 @@ class _CadastroScreenState extends State<CadastroScreen> {
 
   @override
   Widget build(BuildContext context) {
+    String titulo = widget.tipoUsuario.replaceFirst(widget.tipoUsuario[0], widget.tipoUsuario[0].toUpperCase());
+
     return Scaffold(
-      appBar: AppBar(title: Text('Cadastro - ${widget.tipoUsuario.replaceFirst(widget.tipoUsuario[0], widget.tipoUsuario[0].toUpperCase())}')),
+      backgroundColor: const Color(0xFF0A1A46),
+      appBar: AppBar(
+        title: Text('Cadastro - $titulo', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Form(
@@ -123,43 +129,47 @@ class _CadastroScreenState extends State<CadastroScreen> {
                   children: [
                     CircleAvatar(
                       radius: 60,
+                      backgroundColor: Colors.white.withOpacity(0.2),
                       backgroundImage: _fotoPerfilFile != null ? FileImage(_fotoPerfilFile!) : null,
-                      child: _fotoPerfilFile == null ? const Icon(Icons.person, size: 60) : null,
+                      child: _fotoPerfilFile == null ? Icon(Icons.person, size: 60, color: Colors.white.withOpacity(0.7)) : null,
                     ),
                     Positioned(
                       bottom: 0, right: 0,
-                      child: IconButton(icon: const Icon(Icons.camera_alt), onPressed: _selecionarFotoPerfil,),
+                      child: CircleAvatar(
+                        backgroundColor: Colors.white,
+                        child: IconButton(icon: const Icon(Icons.camera_alt, color: Color(0xFF0A1A46)), onPressed: _selecionarFotoPerfil,),
+                      )
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 24),
-              TextFormField(controller: _nomeController, decoration: const InputDecoration(labelText: 'Nome Completo'), validator: (v) => v!.isEmpty ? 'Campo obrigatório' : null),
+              _buildTextFormField(controller: _nomeController, labelText: 'Nome Completo', validator: (v) => v!.isEmpty ? 'Campo obrigatório' : null),
               const SizedBox(height: 16),
-              TextFormField(controller: _emailController, keyboardType: TextInputType.emailAddress, decoration: const InputDecoration(labelText: 'Email'), validator: (v) => v!.isEmpty || !v.contains('@') ? 'Email inválido' : null),
+              _buildTextFormField(controller: _emailController, labelText: 'Email', keyboardType: TextInputType.emailAddress, validator: (v) => v!.isEmpty || !v.contains('@') ? 'Email inválido' : null),
               const SizedBox(height: 16),
-              TextFormField(controller: _senhaController, obscureText: true, decoration: const InputDecoration(labelText: 'Senha (mín. 6 caracteres)'), validator: (v) => v!.length < 6 ? 'Senha muito curta' : null),
+              _buildTextFormField(controller: _senhaController, labelText: 'Senha (mín. 6 caracteres)', obscureText: true, validator: (v) => v!.length < 6 ? 'Senha muito curta' : null),
               const SizedBox(height: 16),
-              TextFormField(controller: _confirmarSenhaController, obscureText: true, decoration: const InputDecoration(labelText: 'Confirmar Senha'), validator: (v) => v != _senhaController.text ? 'As senhas não coincidem' : null),
+              _buildTextFormField(controller: _confirmarSenhaController, labelText: 'Confirmar Senha', obscureText: true, validator: (v) => v != _senhaController.text ? 'As senhas não coincidem' : null),
               
               if (widget.tipoUsuario == 'estudante') ...[
                 const SizedBox(height: 16),
-                TextFormField(controller: _matriculaController, keyboardType: TextInputType.number, decoration: const InputDecoration(labelText: 'Matrícula'), validator: (v) => v!.isEmpty ? 'Campo obrigatório' : null),
+                _buildTextFormField(controller: _matriculaController, labelText: 'Matrícula', keyboardType: TextInputType.number, validator: (v) => v!.isEmpty ? 'Campo obrigatório' : null),
                 const SizedBox(height: 16),
-                TextFormField(controller: _cursoController, decoration: const InputDecoration(labelText: 'Curso'), validator: (v) => v!.isEmpty ? 'Campo obrigatório' : null),
+                _buildTextFormField(controller: _cursoController, labelText: 'Curso', validator: (v) => v!.isEmpty ? 'Campo obrigatório' : null),
               ],
 
               if (widget.tipoUsuario == 'tutor') ...[
                 const SizedBox(height: 24),
                 Container(
                   padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(border: Border.all(color: Colors.grey), borderRadius: BorderRadius.circular(8)),
+                  decoration: BoxDecoration(border: Border.all(color: Colors.white54), borderRadius: BorderRadius.circular(12)),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Icon(Icons.picture_as_pdf_outlined), 
+                      const Icon(Icons.picture_as_pdf_outlined, color: Colors.white70), 
                       const SizedBox(width: 12),
-                      Expanded(child: Text(_curriculoFile?.path.split(Platform.pathSeparator).last ?? 'Currículo (PDF, máx 5MB)', overflow: TextOverflow.ellipsis)),
+                      Expanded(child: Text(_curriculoFile?.path.split(Platform.pathSeparator).last ?? 'Currículo (PDF, máx 5MB)', style: const TextStyle(color: Colors.white), overflow: TextOverflow.ellipsis)),
                       ElevatedButton(child: const Text('Anexar'), onPressed: _selecionarCurriculo),
                     ],
                   ),
@@ -168,14 +178,32 @@ class _CadastroScreenState extends State<CadastroScreen> {
 
               const SizedBox(height: 32),
               ElevatedButton(
-                style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: const Color(0xFF0056A6), padding: const EdgeInsets.symmetric(vertical: 16)),
                 onPressed: _isLoading ? null : _fazerCadastro,
-                child: _isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text('Finalizar Cadastro'),
+                child: _isLoading ? const CircularProgressIndicator(color: Color(0xFF0056A6)) : const Text('Finalizar Cadastro', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTextFormField({required TextEditingController controller, required String labelText, bool obscureText = false, String? Function(String?)? validator, TextInputType? keyboardType}) {
+    return TextFormField(
+      controller: controller,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        labelText: labelText,
+        labelStyle: const TextStyle(color: Colors.white70),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.white54)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.white, width: 2)),
+        errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.redAccent)),
+        focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.redAccent, width: 2)),
+      ),
+      validator: validator,
     );
   }
 }

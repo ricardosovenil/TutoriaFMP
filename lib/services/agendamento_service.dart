@@ -61,7 +61,12 @@ class AgendamentoService {
 
   Future<List<Agendamento>> getSolicitacoesPendentes(String tutorId) async {
     final maps = await _agendamentoRepo.getSolicitacoesPendentes(tutorId);
-    // CORREÇÃO: Usando o construtor correto que lê os dados detalhados do JOIN.
+    return maps.map((map) => Agendamento.fromDetailedMap(map)).toList();
+  }
+
+  // NOVO MÉTODO PARA A TELA DE AGENDAMENTOS
+  Future<List<Agendamento>> getAgendamentosAprovadosDetalhados(String tutorId) async {
+    final maps = await _agendamentoRepo.getAgendamentosAprovadosDetalhados(tutorId);
     return maps.map((map) => Agendamento.fromDetailedMap(map)).toList();
   }
 }

@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../models/tutor.dart';
 import '../services/tutor_service.dart';
@@ -29,6 +28,7 @@ class _HomeTutorScreenState extends State<HomeTutorScreen> {
   }
 
   Future<void> _carregarTutorCompleto() async {
+    if (!mounted) return;
     setState(() => _carregando = true);
     try {
       final tutor = await TutorService.instance.getTutorCompleto(widget.tutor.id);
@@ -54,13 +54,12 @@ class _HomeTutorScreenState extends State<HomeTutorScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4F8),
-      // O AppBar agora é transparente para o efeito funcionar
-      extendBodyBehindAppBar: true,
+      backgroundColor: const Color(0xFF0A1A46), // NOVO PADRÃO DE COR DE FUNDO
       appBar: AppBar(
-        title: const Text('Painel do Tutor', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
-        backgroundColor: Colors.transparent, // Transparente
+        title: const Text('Painel do Tutor', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.transparent,
         elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           if (_carregando)
             const Padding(padding: EdgeInsets.only(right: 20.0), child: Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 3, color: Colors.white)))),
@@ -70,31 +69,67 @@ class _HomeTutorScreenState extends State<HomeTutorScreen> {
           ),
         ],
       ),
-      body: Stack(
+      body: RefreshIndicator(
+        onRefresh: _carregarTutorCompleto,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            _buildHeader(),
+            const SizedBox(height: 24),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8.0),
+              child: Text(
+                "O que você gostaria de fazer?",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white70),
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildDashboardGrid(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(15),
+        color: Colors.white.withOpacity(0.1),
+      ),
+      child: Row(
         children: [
-          // Imagem de fundo
-          Image.asset(
-            'assets/background_home.jpg', 
-            fit: BoxFit.cover,
-            width: double.infinity,
-            height: double.infinity,
+          CircleAvatar(
+            radius: 30,
+            backgroundColor: Colors.white,
+            child: Text(
+              _tutorCompleto.nome.substring(0, 1),
+              style: const TextStyle(fontSize: 28, color: Color(0xFF0A1A46), fontWeight: FontWeight.bold),
+            ),
           ),
-          // Conteúdo principal
-          SafeArea(
-            child: ListView(
-              padding: const EdgeInsets.all(16),
+          const SizedBox(width: 15),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildHeader(),
-                const SizedBox(height: 24),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8.0),
+                Text(
+                  'Olá, ${_tutorCompleto.nome}!',
+                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 5),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.amber.withOpacity(0.8),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                   child: Text(
-                    "O que você gostaria de fazer?",
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                    'Média: ${_tutorCompleto.mediaAvaliacoes.toStringAsFixed(1)} ⭐',
+                    style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
                   ),
                 ),
-                const SizedBox(height: 16),
-                _buildDashboardGrid(),
               ],
             ),
           ),
@@ -102,70 +137,8 @@ class _HomeTutorScreenState extends State<HomeTutorScreen> {
       ),
     );
   }
-
-  Widget _buildHeader() {
-    // ClipRRect é necessário para conter o efeito de blur
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            color: Colors.white.withOpacity(0.2), // Cor semi-transparente para o efeito de vidro
-            border: Border.all(color: Colors.white.withOpacity(0.3))
-          ),
-          child: Row(
-            children: [
-              // LÓGICA DA FOTO DE PERFIL ATUALIZADA
-              CircleAvatar(
-                radius: 30,
-                backgroundColor: Colors.white.withOpacity(0.8),
-                // backgroundImage: _tutorCompleto.fotoPerfilPath != null 
-                //   ? FileImage(File(_tutorCompleto.fotoPerfilPath!)) 
-                //   : null,
-                child: _tutorCompleto.fotoPerfilPath == null 
-                  ? Text(
-                      _tutorCompleto.nome.substring(0, 1),
-                      style: const TextStyle(fontSize: 28, color: Color(0xFF0A1A46), fontWeight: FontWeight.bold),
-                    )
-                  : null,
-              ),
-              const SizedBox(width: 15),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Olá, ${_tutorCompleto.nome}!',
-                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 5),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        'Média: ${_tutorCompleto.mediaAvaliacoes.toStringAsFixed(1)} ⭐',
-                        style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
   
   Widget _buildDashboardGrid() {
-    // ... (O restante do código do Grid permanece o mesmo, mas agora terá um fundo transparente)
     return GridView.count(
       crossAxisCount: 2,
       crossAxisSpacing: 16,
@@ -213,44 +186,37 @@ class _HomeTutorScreenState extends State<HomeTutorScreen> {
     required VoidCallback onTap,
     required Color color,
   }) {
-    return ClipRRect(
+    return InkWell(
+      onTap: onTap,
       borderRadius: BorderRadius.circular(20),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-        child: InkWell(
-          onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.1),
           borderRadius: BorderRadius.circular(20),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.25),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white.withOpacity(0.4))
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(100),
+              ),
+              child: Icon(icon, color: Colors.white, size: 28),
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.9),
-                    borderRadius: BorderRadius.circular(100),
-                  ),
-                  child: Icon(icon, color: Colors.white, size: 28),
-                ),
-                const Spacer(),
-                Text(
-                  text,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
+            const Spacer(),
+            Text(
+              text,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );

@@ -54,7 +54,13 @@ class _BuscarPorAreaScreenState extends State<BuscarPorAreaScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Escolha a Área de Conhecimento')),
+      backgroundColor: const Color(0xFFF0F4F8),
+      appBar: AppBar(
+        title: const Text('Escolha a Área de Conhecimento', style: TextStyle(color: Colors.black87)),
+        backgroundColor: Colors.white,
+        elevation: 1,
+        iconTheme: const IconThemeData(color: Colors.black87),
+      ),
       body: _carregando
           ? const Center(child: CircularProgressIndicator())
           : _areas.isEmpty
@@ -65,11 +71,14 @@ class _BuscarPorAreaScreenState extends State<BuscarPorAreaScreen> {
                   itemBuilder: (context, index) {
                     final area = _areas[index];
                     return Card(
-                      margin: const EdgeInsets.only(bottom: 16),
+                      margin: const EdgeInsets.only(bottom: 12),
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                       child: ListTile(
-                        title: Text(area.nome, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text(area.descricao),
-                        trailing: const Icon(Icons.arrow_forward_ios),
+                        contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                        title: Text(area.nome, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0056A6))),
+                        subtitle: Text(area.descricao, style: const TextStyle(color: Colors.black54)),
+                        trailing: const Icon(Icons.arrow_forward_ios, color: Colors.grey),
                         onTap: () => _navegarParaTutoresDaArea(area),
                       ),
                     );

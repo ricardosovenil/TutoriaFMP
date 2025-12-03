@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:open_file_plus/open_file_plus.dart';
 import '../models/tutor.dart';
@@ -75,136 +74,109 @@ class _GerenciarTutoresScreenState extends State<GerenciarTutoresScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: true,
+      backgroundColor: const Color(0xFF0A1A46),
       appBar: AppBar(
-        title: const Text('Gerenciar Tutores', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        title: const Text('Gerenciar Tutores', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
-        foregroundColor: Colors.white,
         elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: Stack(
-        children: [
-          Image.asset('assets/background_home.jpg', fit: BoxFit.cover, width: double.infinity, height: double.infinity),
-          SafeArea(
-            child: FutureBuilder<List<Tutor>>(
-              future: _tutoresFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator(color: Colors.white));
-                }
-                if (snapshot.hasError) {
-                  return Center(child: Text('Erro: ${snapshot.error}', style: const TextStyle(color: Colors.white)));
-                }
-                final tutores = snapshot.data;
-                if (tutores == null || tutores.isEmpty) {
-                  return _buildEmptyState();
-                }
-                return RefreshIndicator(
-                  onRefresh: () async => setState(() => _carregarTutores()),
-                  child: ListView.separated(
-                    padding: const EdgeInsets.all(16.0),
-                    itemCount: tutores.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
-                    itemBuilder: (context, index) => _buildTutorCard(tutores[index]),
-                  ),
-                );
-              },
+      body: FutureBuilder<List<Tutor>>(
+        future: _tutoresFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator(color: Colors.white));
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('Erro: ${snapshot.error}', style: const TextStyle(color: Colors.white)));
+          }
+          final tutores = snapshot.data;
+          if (tutores == null || tutores.isEmpty) {
+            return _buildEmptyState();
+          }
+          return RefreshIndicator(
+            onRefresh: () async => setState(() => _carregarTutores()),
+            child: ListView.separated(
+              padding: const EdgeInsets.all(16.0),
+              itemCount: tutores.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              itemBuilder: (context, index) => _buildTutorCard(tutores[index]),
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
   
   Widget _buildEmptyState() {
-    return Center(
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 48),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white.withOpacity(0.3))
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.people_outline, size: 60, color: Colors.white70),
-                const SizedBox(height: 20),
-                const Text('Nenhum Tutor Cadastrado', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
-                const SizedBox(height: 8),
-                Text('Os tutores pendentes e aprovados aparecerão aqui.', textAlign: TextAlign.center, style: TextStyle(color: Colors.white.withOpacity(0.7))),
-              ],
-            ),
-          ),
-        ),
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.people_outline, size: 80, color: Colors.white70),
+          SizedBox(height: 20),
+          Text('Nenhum Tutor Cadastrado', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+          SizedBox(height: 8),
+          Text('Os tutores pendentes e aprovados aparecerão aqui.', textAlign: TextAlign.center, style: TextStyle(color: Colors.white70)),
+        ],
       ),
     );
   }
 
   Widget _buildTutorCard(Tutor tutor) {
     final isPendente = tutor.aprovado == 0;
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(15),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: Colors.white.withOpacity(0.3)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  Expanded(child: Text(tutor.nome, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white), overflow: TextOverflow.ellipsis)),
-                  Chip(
-                    label: Text(isPendente ? 'Pendente' : 'Aprovado', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                    backgroundColor: isPendente ? Colors.orange.withOpacity(0.8) : Colors.green.withOpacity(0.8),
-                  ),
-                ],
+              Expanded(child: Text(tutor.nome, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white), overflow: TextOverflow.ellipsis)),
+              Chip(
+                label: Text(isPendente ? 'Pendente' : 'Aprovado', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                backgroundColor: isPendente ? Colors.orange.shade400 : Colors.green.shade400,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
               ),
-              const SizedBox(height: 4),
-              Text(tutor.email, style: TextStyle(color: Colors.white.withOpacity(0.8))),
-              const Divider(height: 24, color: Colors.white30),
-              OutlinedButton.icon(
-                icon: const Icon(Icons.picture_as_pdf_rounded, size: 18, color: Colors.white),
-                label: const Text('Visualizar Currículo', style: TextStyle(color: Colors.white)),
-                style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.white70)),
-                onPressed: tutor.curriculo.isNotEmpty ? () => _visualizarCurriculo(tutor.curriculo) : null,
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  if (isPendente)
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        icon: const Icon(Icons.check, color: Colors.white),
-                        label: const Text('Aprovar', style: TextStyle(color: Colors.white)),
-                        style: ElevatedButton.styleFrom(backgroundColor: Colors.green.withOpacity(0.8), padding: const EdgeInsets.symmetric(vertical: 12)),
-                        onPressed: () => _aprovarTutor(tutor.id),
-                      ),
-                    ),
-                  if (isPendente) const SizedBox(width: 10),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      icon: const Icon(Icons.delete_outline, color: Colors.white),
-                      label: const Text('Excluir', style: TextStyle(color: Colors.white)),
-                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red.withOpacity(0.8), padding: const EdgeInsets.symmetric(vertical: 12)),
-                      onPressed: () => _excluirTutor(tutor.id),
-                    ),
-                  ),
-                ],
-              )
             ],
           ),
-        ),
+          const SizedBox(height: 4),
+          Text(tutor.email, style: const TextStyle(color: Colors.white70)),
+          const Divider(height: 24, color: Colors.white30),
+          OutlinedButton.icon(
+            icon: const Icon(Icons.picture_as_pdf_rounded, size: 18, color: Colors.white),
+            label: const Text('Visualizar Currículo', style: TextStyle(color: Colors.white)),
+            style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.white70)),
+            onPressed: tutor.curriculo.isNotEmpty ? () => _visualizarCurriculo(tutor.curriculo) : null,
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              if (isPendente)
+                Expanded(
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.check, color: Colors.white),
+                    label: const Text('Aprovar', style: TextStyle(color: Colors.white)),
+                    style: ElevatedButton.styleFrom(backgroundColor: Colors.green, padding: const EdgeInsets.symmetric(vertical: 12)),
+                    onPressed: () => _aprovarTutor(tutor.id),
+                  ),
+                ),
+              if (isPendente) const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.delete_outline, color: Colors.white),
+                  label: const Text('Excluir', style: TextStyle(color: Colors.white)),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red, padding: const EdgeInsets.symmetric(vertical: 12)),
+                  onPressed: () => _excluirTutor(tutor.id),
+                ),
+              ),
+            ],
+          )
+        ],
       ),
     );
   }

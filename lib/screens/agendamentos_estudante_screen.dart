@@ -41,7 +41,6 @@ class _AgendamentosEstudanteScreenState extends State<AgendamentosEstudanteScree
       final List<_AgendamentoCompleto> agendamentosCompletos = [];
 
       for (var ag in agendamentosBase) {
-        // Busca os dados relacionados que agora estão separados
         final disponibilidade = await AgendamentoService.instance.getDisponibilidade(ag.disponibilidadeId);
         if (disponibilidade != null) {
           final tutor = await TutorService.instance.getTutorCompleto(disponibilidade.tutorId);
@@ -101,7 +100,13 @@ class _AgendamentosEstudanteScreenState extends State<AgendamentosEstudanteScree
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Meus Agendamentos')),
+      backgroundColor: const Color(0xFFF0F4F8),
+      appBar: AppBar(
+        title: const Text('Meus Agendamentos', style: TextStyle(color: Colors.black87)),
+        backgroundColor: Colors.white,
+        elevation: 1,
+        iconTheme: const IconThemeData(color: Colors.black87),
+      ),
       body: _carregando
           ? const Center(child: CircularProgressIndicator())
           : _agendamentosCompletos.isEmpty
@@ -120,6 +125,7 @@ class _AgendamentosEstudanteScreenState extends State<AgendamentosEstudanteScree
                       return Card(
                         margin: const EdgeInsets.only(bottom: 16),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        elevation: 2,
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: Column(
@@ -142,7 +148,6 @@ class _AgendamentosEstudanteScreenState extends State<AgendamentosEstudanteScree
                                 ],
                               ),
                               const SizedBox(height: 10),
-                              // CORREÇÃO: Usa o dataHora do objeto disponibilidade
                               Text('Data: ${DateFormat('dd/MM/yyyy', 'pt_BR').format(disponibilidade.dataHora)}', style: const TextStyle(color: Colors.black54)),
                               Text('Hora: ${DateFormat('HH:mm', 'pt_BR').format(disponibilidade.dataHora)}', style: const TextStyle(color: Colors.black54)),
                               if (agendamento.motivoSolicitacao.isNotEmpty) ...[

@@ -2,6 +2,7 @@ import 'package:sqflite/sqflite.dart';
 import '../database/database_helper.dart';
 import '../models/agendamento.dart';
 import '../models/disponibilidade.dart';
+import '../enums/status.dart';
 
 class AgendamentoRepository {
   final dbHelper = DatabaseHelper.instance;
@@ -78,7 +79,6 @@ class AgendamentoRepository {
 
   Future<List<Map<String, dynamic>>> getSolicitacoesPendentes(String tutorId) async {
     final db = await dbHelper.database;
-    // CORREÇÃO FINAL: Listando explicitamente todas as colunas para garantir que o `fromMap` funcione.
     return await db.rawQuery('''
       SELECT 
         a.id, a.disponibilidadeId, a.estudanteId, a.motivoSolicitacao, a.status, a.concluido, a.descricaoDeConteudo, 
@@ -87,8 +87,24 @@ class AgendamentoRepository {
       FROM agendamentos a
       JOIN usuarios u ON a.estudanteId = u.id
       JOIN disponibilidades d ON a.disponibilidadeId = d.id
-      WHERE d.tutorId = ? AND a.status = 'aguardandoAp'
+      WHERE d.tutorId = ? AND a.status = ?
       ORDER BY d.dataHora ASC
-    ''', [tutorId]);
+    ''', [tutorId, Status.aguardandoAp.value]);
+  }
+
+  // NOVO MÉTODO OTIMIZADO PARA AGENDAMENTOS APROVADOS
+  Future<List<Map<String, dynamic>>> getAgendamentosAprovadosDetalhados(String tutorId) async {
+    final db = await dbHelper.database;
+    return await db.rawQuery('''
+      SELECT 
+        a.id, a.disponibilidadeId, a.estudanteId, a.motivoSolicitacao, a.status, a.concluido, a.descricaoDeConteudo, 
+        u.nome as estudanteNome, 
+        d.dataHora as dataHora
+      FROM agendamentos a
+      JOIN usuarios u ON a.estudanteId = u.id
+      JOIN disponibilidades d ON a.disponibilidadeId = d.id
+      WHERE d.tutorId = ? AND a.status = ?
+      ORDER BY d.dataHora DESC
+    ''', [tutorId, Status.aprovado.value]);
   }
 }

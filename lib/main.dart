@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/date_symbol_data_local.dart'; // Import para inicialização de data
+import 'package:intl/date_symbol_data_local.dart';
 import 'screens/login_screen.dart';
 import 'screens/cadastro_screen.dart';
 import 'screens/home_estudante_screen.dart';
@@ -14,10 +14,7 @@ import 'database/database_init_stub.dart' if (dart.library.io) 'database/databas
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // CORREÇÃO: Inicializa os dados de formatação de data para o local pt_BR
   await initializeDateFormatting('pt_BR', null);
-  
   initDatabaseForPlatform();
   await DatabaseHelper.instance.database;
   await DatabaseHelper.instance.ensureDefaultUsers();
@@ -33,7 +30,6 @@ class FmpApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'FMP - Sistema de Tutoria',
       initialRoute: '/',
-      // Usar onGenerateRoute para uma navegação mais robusta e segura
       onGenerateRoute: (settings) {
         switch (settings.name) {
           case '/':
@@ -47,36 +43,34 @@ class FmpApp extends StatelessWidget {
             final tipoUsuario = settings.arguments as String?;
             return MaterialPageRoute(builder: (_) => CadastroScreen(tipoUsuario: tipoUsuario ?? 'estudante'));
 
-          // --- NOVAS ROTAS EXPLÍCITAS ---
           case '/home_estudante':
             final estudante = settings.arguments as Estudante?;
             if (estudante != null) {
               return MaterialPageRoute(builder: (_) => HomeEstudanteScreen(estudante: estudante));
             }
-            break; // Se argumento for nulo, cai no fallback
+            break;
 
           case '/home_tutor':
             final tutor = settings.arguments as Tutor?;
             if (tutor != null) {
               return MaterialPageRoute(builder: (_) => HomeTutorScreen(tutor: tutor));
             }
-            break; // Se argumento for nulo, cai no fallback
+            break;
 
           case '/home_coordenador':
             final coordenador = settings.arguments as Coordenador?;
             if (coordenador != null) {
               return MaterialPageRoute(builder: (_) => HomeCoordenadorScreen(coordenador: coordenador));
             }
-            break; // Se argumento for nulo, cai no fallback
+            break;
         }
-
-        // Fallback: Se nenhuma rota corresponder, ou argumentos forem inválidos, volta para a tela de escolha.
         return MaterialPageRoute(builder: (_) => const TelaEscolhaUsuario());
       },
     );
   }
 }
 
+// TELA DE ESCOLHA DE USUÁRIO - VERSÃO PADRÃO
 class TelaEscolhaUsuario extends StatefulWidget {
   const TelaEscolhaUsuario({super.key});
 
@@ -87,24 +81,32 @@ class TelaEscolhaUsuario extends StatefulWidget {
 class _TelaEscolhaUsuarioState extends State<TelaEscolhaUsuario> {
   String? usuarioSelecionado;
 
+  void _navegarPara(String rota) {
+    if (usuarioSelecionado == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor, selecione um tipo de usuário primeiro.')),
+      );
+    } else {
+      Navigator.pushNamed(context, rota, arguments: usuarioSelecionado);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0A1A46), // azul escuro de fundo
+      backgroundColor: const Color(0xFF0A1A46), // Fundo azul escuro padrão
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(20),
             child: Column(
               children: [
-                // Logo FMP
                 Image.asset(
                   'assets/logo_fmp.png',
                   height: 90,
                 ),
                 const SizedBox(height: 40),
-
-                // Card branco
+                // CARD BRANCO PADRÃO
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
                   decoration: BoxDecoration(
@@ -129,8 +131,6 @@ class _TelaEscolhaUsuarioState extends State<TelaEscolhaUsuario> {
                         ),
                       ),
                       const SizedBox(height: 25),
-
-                      // Botões de usuário
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
@@ -139,10 +139,7 @@ class _TelaEscolhaUsuarioState extends State<TelaEscolhaUsuario> {
                           _botaoUsuario("Coordenador", Icons.manage_accounts, "coordenador"),
                         ],
                       ),
-
                       const SizedBox(height: 30),
-
-                      // Botão "Entrar"
                       SizedBox(
                         width: double.infinity,
                         height: 50,
@@ -153,49 +150,16 @@ class _TelaEscolhaUsuarioState extends State<TelaEscolhaUsuario> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          onPressed: () {
-                            if (usuarioSelecionado == null) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Selecione um tipo de usuário.'),
-                                ),
-                              );
-                            } else {
-                              // Navegar para tela de login com o tipo de usuário selecionado
-                              Navigator.pushNamed(
-                                context,
-                                '/login',
-                                arguments: usuarioSelecionado,
-                              );
-                            }
-                          },
+                          onPressed: () => _navegarPara('/login'),
                           child: const Text(
                             "Entrar",
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
                           ),
                         ),
                       ),
-
                       const SizedBox(height: 20),
-
-                      // Link de cadastro
                       GestureDetector(
-                        onTap: () {
-                          if (usuarioSelecionado == null) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Selecione um tipo de usuário primeiro.'),
-                              ),
-                            );
-                          } else {
-                            // Navegar para tela de cadastro
-                            Navigator.pushNamed(
-                              context,
-                              '/cadastro',
-                              arguments: usuarioSelecionado,
-                            );
-                          }
-                        },
+                        onTap: () => _navegarPara('/cadastro'),
                         child: const Text.rich(
                           TextSpan(
                             text: "Não possui login? ",

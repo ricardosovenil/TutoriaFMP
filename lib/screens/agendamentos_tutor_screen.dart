@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../models/tutor.dart';
 import '../models/agendamento.dart';
-import '../models/disponibilidade.dart';
-import '../models/estudante.dart';
 import '../services/agendamento_service.dart';
-import '../services/usuario_service.dart'; // Usaremos para buscar o estudante
-import '../enums/status.dart';
-import 'package:intl/intl.dart';
 
 class AgendamentosTutorScreen extends StatefulWidget {
   final Tutor tutor;
@@ -17,17 +13,8 @@ class AgendamentosTutorScreen extends StatefulWidget {
   State<AgendamentosTutorScreen> createState() => _AgendamentosTutorScreenState();
 }
 
-// Modelo para agrupar dados para a UI
-class _AgendamentoDetalhado {
-  final Agendamento agendamento;
-  final Disponibilidade disponibilidade;
-  final Estudante estudante;
-  _AgendamentoDetalhado({required this.agendamento, required this.disponibilidade, required this.estudante});
-}
-
 class _AgendamentosTutorScreenState extends State<AgendamentosTutorScreen> {
-  List<_AgendamentoDetalhado> _agendamentosDetalhados = [];
-  bool _carregando = true;
+  late Future<List<Agendamento>> _agendamentosFuturos;
 
   @override
   void initState() {
@@ -35,95 +22,126 @@ class _AgendamentosTutorScreenState extends State<AgendamentosTutorScreen> {
     _carregarAgendamentos();
   }
 
-  Future<void> _carregarAgendamentos() async {
-    setState(() => _carregando = true);
-    try {
-      final agendamentosBase = await AgendamentoService.instance.listarPorTutor(widget.tutor.id);
-      final List<_AgendamentoDetalhado> agendamentosDetalhados = [];
-
-      for (var ag in agendamentosBase) {
-        final disponibilidade = await AgendamentoService.instance.getDisponibilidade(ag.disponibilidadeId);
-        final estudante = await UsuarioService.instance.getEstudante(ag.estudanteId);
-
-        if (disponibilidade != null && estudante != null) {
-          agendamentosDetalhados.add(_AgendamentoDetalhado(agendamento: ag, disponibilidade: disponibilidade, estudante: estudante));
-        }
-      }
-      // Ordena do mais recente para o mais antigo
-      agendamentosDetalhados.sort((a, b) => b.disponibilidade.dataHora.compareTo(a.disponibilidade.dataHora));
-
-      setState(() {
-        _agendamentosDetalhados = agendamentosDetalhados;
-        _carregando = false;
-      });
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao carregar agendamentos: $e')));
-        setState(() => _carregando = false);
-      }
-    }
-  }
-
-  Color _getStatusColor(Status status) {
-    // ... (código existente, sem mudanças)
-    switch (status) {
-      case Status.aprovado: return Colors.green;
-      case Status.aguardandoAp: return Colors.orange;
-      case Status.negado: return Colors.red;
-      case Status.cancelado: return Colors.grey;
-    }
+  void _carregarAgendamentos() {
+    setState(() {
+      _agendamentosFuturos = AgendamentoService.instance.getAgendamentosAprovadosDetalhados(widget.tutor.id);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Meus Agendamentos')),
-      body: _carregando
-          ? const Center(child: CircularProgressIndicator())
-          : _agendamentosDetalhados.isEmpty
-              ? const Center(child: Text('Nenhum agendamento encontrado.'))
-              : RefreshIndicator(
-                  onRefresh: _carregarAgendamentos,
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: _agendamentosDetalhados.length,
-                    itemBuilder: (context, index) {
-                      final item = _agendamentosDetalhados[index];
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Text(item.estudante.nome, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0056A6))),
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                    decoration: BoxDecoration(color: _getStatusColor(item.agendamento.status).withOpacity(0.2), borderRadius: BorderRadius.circular(20)),
-                                    child: Text(item.agendamento.status.displayName, style: TextStyle(color: _getStatusColor(item.agendamento.status), fontWeight: FontWeight.w600, fontSize: 12)),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-                              Text('Data: ${DateFormat('dd/MM/yyyy', 'pt_BR').format(item.disponibilidade.dataHora)}', style: const TextStyle(color: Colors.black54)),
-                              Text('Hora: ${DateFormat('HH:mm', 'pt_BR').format(item.disponibilidade.dataHora)}', style: const TextStyle(color: Colors.black54)),
-                              if (item.agendamento.motivoSolicitacao.isNotEmpty) ...[
-                                const SizedBox(height: 10),
-                                Text('Motivo: ${item.agendamento.motivoSolicitacao}', style: const TextStyle(color: Colors.black87)),
-                              ],
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
+      backgroundColor: const Color(0xFF0A1A46),
+      appBar: AppBar(
+        title: const Text('Meus Agendamentos', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      body: FutureBuilder<List<Agendamento>>(
+        future: _agendamentosFuturos,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator(color: Colors.white));
+          }
+
+          if (snapshot.hasError) {
+            return _buildErrorState(snapshot.error.toString());
+          }
+
+          final agendamentos = snapshot.data;
+
+          if (agendamentos == null || agendamentos.isEmpty) {
+            return _buildEmptyState();
+          }
+
+          return RefreshIndicator(
+            onRefresh: () async => _carregarAgendamentos(),
+            child: ListView.separated(
+              padding: const EdgeInsets.all(16.0),
+              itemCount: agendamentos.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                return _buildAgendamentoCard(agendamentos[index]);
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.calendar_today_outlined, size: 80, color: Colors.white70),
+          SizedBox(height: 20),
+          Text('Nenhum Agendamento', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
+          SizedBox(height: 8),
+          Text('Seus agendamentos aprovados aparecerão aqui.', textAlign: TextAlign.center, style: TextStyle(color: Colors.white70)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState(String error) {
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        margin: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.6),
+          borderRadius: BorderRadius.circular(15),
+        ),
+        child: const Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.error_outline, color: Colors.redAccent, size: 50),
+            SizedBox(height: 16),
+            Text(
+              'Ocorreu um Erro',
+              style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 10),
+            Text(
+              'Não foi possível carregar os agendamentos.',
+              style: TextStyle(color: Colors.white70),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAgendamentoCard(Agendamento agendamento) {
+    final studentName = agendamento.estudanteNome ?? 'Aluno não encontrado';
+    final dataHora = agendamento.dataHora;
+    if (dataHora == null) return const SizedBox.shrink();
+
+    return Container(
+      padding: const EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(studentName, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+          const SizedBox(height: 12),
+          Row(children: [const Icon(Icons.calendar_today, size: 16, color: Colors.white70), const SizedBox(width: 8), Text(DateFormat('dd/MM/yyyy', 'pt_BR').format(dataHora), style: const TextStyle(color: Colors.white))]),
+          const SizedBox(height: 6),
+          Row(children: [const Icon(Icons.access_time, size: 16, color: Colors.white70), const SizedBox(width: 8), Text(DateFormat('HH:mm', 'pt_BR').format(dataHora), style: const TextStyle(color: Colors.white))]),
+          const Divider(height: 24, color: Colors.white30),
+          const Text('Motivo da Solicitação:', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+          const SizedBox(height: 6),
+          Text(agendamento.motivoSolicitacao, style: const TextStyle(color: Colors.white70)),
+        ],
+      ),
     );
   }
 }

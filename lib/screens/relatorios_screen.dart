@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../models/tutor.dart';
 import '../services/tutor_service.dart';
@@ -30,69 +29,58 @@ class _RelatoriosScreenState extends State<RelatoriosScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: true,
+      backgroundColor: const Color(0xFF0A1A46),
       appBar: AppBar(
-        title: const Text('Relatórios', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+        title: const Text('Relatórios', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.transparent,
-        foregroundColor: Colors.white,
         elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: Stack(
-        children: [
-          Image.asset('assets/background_home.jpg', fit: BoxFit.cover, width: double.infinity, height: double.infinity),
-          SafeArea(
-            child: RefreshIndicator(
-              onRefresh: () async => setState(() => _carregarDados()),
-              child: ListView(
-                padding: const EdgeInsets.all(16.0),
-                children: [
-                  _buildResumoCard(),
-                  const SizedBox(height: 24),
-                  const Text('Relatório por Tutor', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-                  const SizedBox(height: 10),
-                  _buildListaTutores(),
-                ],
-              ),
+      body: RefreshIndicator(
+        onRefresh: () async => setState(() => _carregarDados()),
+        child: ListView(
+          padding: const EdgeInsets.all(16.0),
+          children: [
+            _buildResumoCard(),
+            const SizedBox(height: 24),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8.0),
+              child: Text('Relatório por Tutor', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white70)),
             ),
-          ),
-        ],
+            const SizedBox(height: 10),
+            _buildListaTutores(),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildResumoCard() {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(20),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-        child: Container(
-          padding: const EdgeInsets.all(20.0),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.2),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: Colors.white.withOpacity(0.3)),
+    return Container(
+      padding: const EdgeInsets.all(20.0),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Column(
+        children: [
+          const Text('Total de Estudantes Ativos', style: TextStyle(fontSize: 16, color: Colors.white70)),
+          const SizedBox(height: 10),
+          FutureBuilder<int>(
+            future: _totalEstudantesFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const CircularProgressIndicator(color: Colors.white);
+              }
+              if (snapshot.hasError) {
+                return const Text('Erro', style: TextStyle(color: Colors.redAccent, fontSize: 32, fontWeight: FontWeight.bold));
+              }
+              return Text(snapshot.data?.toString() ?? '0', style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Colors.white));
+            },
           ),
-          child: Column(
-            children: [
-              Text('Total de Estudantes Ativos', style: TextStyle(fontSize: 16, color: Colors.white.withOpacity(0.8))),
-              const SizedBox(height: 10),
-              FutureBuilder<int>(
-                future: _totalEstudantesFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const CircularProgressIndicator(color: Colors.white);
-                  }
-                  if (snapshot.hasError) {
-                    return const Text('Erro', style: TextStyle(color: Colors.redAccent, fontSize: 32, fontWeight: FontWeight.bold));
-                  }
-                  return Text(snapshot.data?.toString() ?? '0', style: const TextStyle(fontSize: 36, fontWeight: FontWeight.bold, color: Colors.white));
-                },
-              ),
-              const SizedBox(height: 5),
-              Text('(que já agendaram pelo menos uma tutoria)', style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.7)), textAlign: TextAlign.center),
-            ],
-          ),
-        ),
+          const SizedBox(height: 5),
+          const Text('(que já agendaram pelo menos uma tutoria)', style: TextStyle(fontSize: 12, color: Colors.white60), textAlign: TextAlign.center),
+        ],
       ),
     );
   }
@@ -108,41 +96,35 @@ class _RelatoriosScreenState extends State<RelatoriosScreen> {
           return const Center(child: Text('Erro ao carregar tutores.', style: TextStyle(color: Colors.white)));
         }
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text('Nenhum tutor cadastrado.', style: TextStyle(color: Colors.white)));
+          return const Center(child: Text('Nenhum tutor cadastrado.', style: TextStyle(color: Colors.white70)));
         }
 
         final tutores = snapshot.data!;
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-            child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.white.withOpacity(0.3)),
-                ),
-              child: ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: tutores.length,
-                separatorBuilder: (context, index) => const Divider(color: Colors.white30, indent: 16, endIndent: 16),
-                itemBuilder: (context, index) {
-                  final tutor = tutores[index];
-                  return ListTile(
-                    title: Text(tutor.nome, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                    subtitle: Text(tutor.email, style: TextStyle(color: Colors.white.withOpacity(0.8))),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.white),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => RelatorioTutorDetalheScreen(tutor: tutor)),
-                      );
-                    },
+        return Container(
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(15),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: tutores.length,
+            separatorBuilder: (context, index) => const Divider(height: 1, color: Colors.white24, indent: 16, endIndent: 16),
+            itemBuilder: (context, index) {
+              final tutor = tutores[index];
+              return ListTile(
+                title: Text(tutor.nome, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                subtitle: Text(tutor.email, style: const TextStyle(color: Colors.white70)),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.white70),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => RelatorioTutorDetalheScreen(tutor: tutor)),
                   );
                 },
-              ),
-            ),
+              );
+            },
           ),
         );
       },

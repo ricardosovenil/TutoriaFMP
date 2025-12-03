@@ -110,44 +110,60 @@ class _AvaliarTutorScreenState extends State<AvaliarTutorScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Avaliar Tutoria')),
+      backgroundColor: const Color(0xFFF0F4F8),
+      appBar: AppBar(
+        title: const Text('Avaliar Tutoria', style: TextStyle(color: Colors.black87)),
+        backgroundColor: Colors.white,
+        elevation: 1,
+        iconTheme: const IconThemeData(color: Colors.black87),
+      ),
       body: _carregando
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: _itensParaAvaliar.isEmpty
-                  ? const Center(child: Text('Nenhum agendamento concluído para avaliar.'))
+                  ? const Center(child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 40.0),
+                    child: Text('Nenhum agendamento concluído para avaliar.'),
+                  ))
                   : Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const Text('Selecione a Tutoria para Avaliar', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                        Text('Selecione a Tutoria para Avaliar', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.black54)),
                         const SizedBox(height: 8),
                         ..._itensParaAvaliar.map((item) {
                           final selecionado = _itemSelecionado?.agendamento.id == item.agendamento.id;
                           return Card(
-                            color: selecionado ? Theme.of(context).primaryColorLight : Colors.white,
+                            color: selecionado ? Colors.blue.shade50 : Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              side: BorderSide(color: selecionado ? Colors.blue.shade600 : Colors.grey.shade300)
+                            ),
+                            elevation: selecionado ? 3 : 1,
                             child: ListTile(
                               title: Text(item.tutor.nome, style: const TextStyle(fontWeight: FontWeight.bold)),
                               subtitle: Text('${DateFormat('dd/MM/yyyy').format(item.disponibilidade.dataHora)} às ${DateFormat('HH:mm').format(item.disponibilidade.dataHora)}'),
                               onTap: () => setState(() => _itemSelecionado = item),
-                              trailing: selecionado ? Icon(Icons.check_circle, color: Theme.of(context).primaryColor) : null,
+                              trailing: selecionado ? Icon(Icons.check_circle, color: Colors.blue.shade600) : null,
                             ),
                           );
                         }),
                         if (_itemSelecionado != null) ...[
                           const SizedBox(height: 24),
-                          const Text('Sua Avaliação', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          Text('Sua Avaliação', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Colors.black54)),
                           const SizedBox(height: 8),
                           Card(
+                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                             elevation: 2,
                             child: Padding(
                               padding: const EdgeInsets.all(16.0),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('Nota para ${(_itemSelecionado!.tutor).nome}'),
+                                  Text('Nota para ${(_itemSelecionado!.tutor).nome}', style: const TextStyle(fontWeight: FontWeight.bold)),
                                   Slider(value: _nota, min: 1, max: 10, divisions: 9, label: _nota.toStringAsFixed(1), onChanged: (v) => setState(() => _nota = v)),
                                   const SizedBox(height: 16),
-                                  const Text('Comentário'),
+                                  const Text('Comentário', style: TextStyle(fontWeight: FontWeight.bold)),
                                   const SizedBox(height: 8),
                                   TextField(
                                     controller: _comentarioController,
