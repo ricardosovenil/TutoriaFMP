@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_1/theme/app_theme.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'screens/login_screen.dart';
 import 'screens/cadastro_screen.dart';
@@ -29,6 +30,9 @@ class FmpApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'FMP - Sistema de Tutoria',
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
       initialRoute: '/',
       onGenerateRoute: (settings) {
         switch (settings.name) {
@@ -70,7 +74,6 @@ class FmpApp extends StatelessWidget {
   }
 }
 
-// TELA DE ESCOLHA DE USUÁRIO - VERSÃO PADRÃO
 class TelaEscolhaUsuario extends StatefulWidget {
   const TelaEscolhaUsuario({super.key});
 
@@ -93,8 +96,10 @@ class _TelaEscolhaUsuarioState extends State<TelaEscolhaUsuario> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0A1A46), // Fundo azul escuro padrão
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -106,11 +111,10 @@ class _TelaEscolhaUsuarioState extends State<TelaEscolhaUsuario> {
                   height: 90,
                 ),
                 const SizedBox(height: 40),
-                // CARD BRANCO PADRÃO
                 Container(
                   padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: theme.cardTheme.color,
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
@@ -122,13 +126,9 @@ class _TelaEscolhaUsuarioState extends State<TelaEscolhaUsuario> {
                   ),
                   child: Column(
                     children: [
-                      const Text(
+                      Text(
                         "Selecionar tipo de usuário",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black87,
-                        ),
+                        style: theme.textTheme.headlineSmall,
                       ),
                       const SizedBox(height: 25),
                       Row(
@@ -142,33 +142,23 @@ class _TelaEscolhaUsuarioState extends State<TelaEscolhaUsuario> {
                       const SizedBox(height: 30),
                       SizedBox(
                         width: double.infinity,
-                        height: 50,
                         child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF0056A6),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
                           onPressed: () => _navegarPara('/login'),
-                          child: const Text(
-                            "Entrar",
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-                          ),
+                          child: const Text("Entrar"),
                         ),
                       ),
                       const SizedBox(height: 20),
                       GestureDetector(
                         onTap: () => _navegarPara('/cadastro'),
-                        child: const Text.rich(
+                        child: Text.rich(
                           TextSpan(
                             text: "Não possui login? ",
-                            style: TextStyle(color: Colors.black54),
+                            style: theme.textTheme.bodyMedium,
                             children: [
                               TextSpan(
                                 text: "Cadastre-se",
                                 style: TextStyle(
-                                  color: Color(0xFF0056A6),
+                                  color: theme.colorScheme.primary,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -188,30 +178,41 @@ class _TelaEscolhaUsuarioState extends State<TelaEscolhaUsuario> {
   }
 
   Widget _botaoUsuario(String titulo, IconData icone, String valor) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
     final bool selecionado = usuarioSelecionado == valor;
+    
+    final Color backgroundColor = selecionado 
+      ? (isDarkMode ? AppColors.primaryBlue.withOpacity(0.3) : AppColors.primaryBlue.withOpacity(0.1))
+      : theme.cardTheme.color!;
+
+    final Color borderColor = selecionado 
+      ? AppColors.primaryBlue 
+      : (isDarkMode ? AppColors.mediumGrey.withOpacity(0.5) : AppColors.mediumGrey);
+
     return GestureDetector(
       onTap: () => setState(() => usuarioSelecionado = valor),
       child: Container(
         width: 90,
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
-          color: selecionado ? const Color(0xFFE7F1FF) : Colors.white,
+          color: backgroundColor,
           border: Border.all(
-            color: selecionado ? const Color(0xFF0056A6) : Colors.grey.shade300,
+            color: borderColor,
             width: 2,
           ),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
           children: [
-            Icon(icone, color: const Color(0xFF0056A6), size: 32),
+            Icon(icone, color: AppColors.primaryBlue, size: 32),
             const SizedBox(height: 8),
             Text(
               titulo,
               style: TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 13,
-                color: const Color(0xFF0056A6),
+                color: AppColors.primaryBlue,
               ),
             ),
           ],

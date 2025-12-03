@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import '../models/estudante.dart';
 import '../models/area_conhecimento.dart';
 import '../services/area_conhecimento_service.dart';
@@ -45,7 +46,7 @@ class _BuscarPorAreaScreenState extends State<BuscarPorAreaScreen> {
       MaterialPageRoute(
         builder: (_) => QuadroHorariosScreen(
           estudante: widget.estudante,
-          areaFiltroInicial: area, // Passa a área selecionada como filtro inicial
+          areaFiltroInicial: area,
         ),
       ),
     );
@@ -53,32 +54,41 @@ class _BuscarPorAreaScreenState extends State<BuscarPorAreaScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4F8),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('Escolha a Área de Conhecimento', style: TextStyle(color: Colors.black87)),
-        backgroundColor: Colors.white,
-        elevation: 1,
-        iconTheme: const IconThemeData(color: Colors.black87),
+        title: const Text('Escolha a Área de Conhecimento'),
       ),
       body: _carregando
           ? const Center(child: CircularProgressIndicator())
           : _areas.isEmpty
-              ? const Center(child: Text('Nenhuma área de conhecimento cadastrada.'))
+              ? Center(child: Text('Nenhuma área de conhecimento cadastrada.', style: theme.textTheme.bodyMedium))
               : ListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: _areas.length,
                   itemBuilder: (context, index) {
                     final area = _areas[index];
                     return Card(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                       child: ListTile(
                         contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                        title: Text(area.nome, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF0056A6))),
-                        subtitle: Text(area.descricao, style: const TextStyle(color: Colors.black54)),
-                        trailing: const Icon(Icons.arrow_forward_ios, color: Colors.grey),
+                        title: Text(
+                          area.nome, 
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            color: AppColors.primaryBlue, // Mantém a cor primária para destaque
+                            fontSize: 16,
+                          ),
+                        ),
+                        subtitle: Text(
+                          area.descricao,
+                          style: theme.textTheme.bodyMedium,
+                        ),
+                        trailing: Icon(
+                          Icons.arrow_forward_ios,
+                          color: theme.textTheme.bodyMedium?.color,
+                          size: 16,
+                        ),
                         onTap: () => _navegarParaTutoresDaArea(area),
                       ),
                     );

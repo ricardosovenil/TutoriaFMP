@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import '../services/auth_service.dart';
+import '../theme/app_theme.dart';
 
 class CadastroScreen extends StatefulWidget {
   final String tipoUsuario;
@@ -95,8 +96,11 @@ class _CadastroScreenState extends State<CadastroScreen> {
       }
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cadastro realizado com sucesso!')));
-        Navigator.pushReplacementNamed(context, '/');
+        final successMessage = widget.tipoUsuario == 'tutor' 
+            ? 'Cadastro enviado para análise com sucesso!'
+            : 'Cadastro realizado com sucesso!';
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(successMessage)));
+        Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
       }
     } catch (e) {
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erro ao cadastrar: ${e.toString()}')));
@@ -107,15 +111,16 @@ class _CadastroScreenState extends State<CadastroScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
     String titulo = widget.tipoUsuario.replaceFirst(widget.tipoUsuario[0], widget.tipoUsuario[0].toUpperCase());
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0A1A46),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text('Cadastro - $titulo', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.transparent,
+        title: Text('Cadastro - $titulo'),
+        backgroundColor: isDarkMode ? Colors.transparent : theme.appBarTheme.backgroundColor,
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
@@ -129,47 +134,47 @@ class _CadastroScreenState extends State<CadastroScreen> {
                   children: [
                     CircleAvatar(
                       radius: 60,
-                      backgroundColor: Colors.white.withOpacity(0.2),
+                      backgroundColor: theme.colorScheme.onSurface.withOpacity(0.1),
                       backgroundImage: _fotoPerfilFile != null ? FileImage(_fotoPerfilFile!) : null,
-                      child: _fotoPerfilFile == null ? Icon(Icons.person, size: 60, color: Colors.white.withOpacity(0.7)) : null,
+                      child: _fotoPerfilFile == null ? Icon(Icons.person, size: 60, color: theme.colorScheme.onSurface.withOpacity(0.4)) : null,
                     ),
                     Positioned(
                       bottom: 0, right: 0,
                       child: CircleAvatar(
-                        backgroundColor: Colors.white,
-                        child: IconButton(icon: const Icon(Icons.camera_alt, color: Color(0xFF0A1A46)), onPressed: _selecionarFotoPerfil,),
+                        backgroundColor: theme.colorScheme.surface,
+                        child: IconButton(icon: Icon(Icons.camera_alt, color: theme.colorScheme.primary), onPressed: _selecionarFotoPerfil,),
                       )
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 24),
-              _buildTextFormField(controller: _nomeController, labelText: 'Nome Completo', validator: (v) => v!.isEmpty ? 'Campo obrigatório' : null),
+              _buildTextFormField(theme, controller: _nomeController, labelText: 'Nome Completo', validator: (v) => v!.isEmpty ? 'Campo obrigatório' : null),
               const SizedBox(height: 16),
-              _buildTextFormField(controller: _emailController, labelText: 'Email', keyboardType: TextInputType.emailAddress, validator: (v) => v!.isEmpty || !v.contains('@') ? 'Email inválido' : null),
+              _buildTextFormField(theme, controller: _emailController, labelText: 'Email', keyboardType: TextInputType.emailAddress, validator: (v) => v!.isEmpty || !v.contains('@') ? 'Email inválido' : null),
               const SizedBox(height: 16),
-              _buildTextFormField(controller: _senhaController, labelText: 'Senha (mín. 6 caracteres)', obscureText: true, validator: (v) => v!.length < 6 ? 'Senha muito curta' : null),
+              _buildTextFormField(theme, controller: _senhaController, labelText: 'Senha (mín. 6 caracteres)', obscureText: true, validator: (v) => v!.length < 6 ? 'Senha muito curta' : null),
               const SizedBox(height: 16),
-              _buildTextFormField(controller: _confirmarSenhaController, labelText: 'Confirmar Senha', obscureText: true, validator: (v) => v != _senhaController.text ? 'As senhas não coincidem' : null),
+              _buildTextFormField(theme, controller: _confirmarSenhaController, labelText: 'Confirmar Senha', obscureText: true, validator: (v) => v != _senhaController.text ? 'As senhas não coincidem' : null),
               
               if (widget.tipoUsuario == 'estudante') ...[
                 const SizedBox(height: 16),
-                _buildTextFormField(controller: _matriculaController, labelText: 'Matrícula', keyboardType: TextInputType.number, validator: (v) => v!.isEmpty ? 'Campo obrigatório' : null),
+                _buildTextFormField(theme, controller: _matriculaController, labelText: 'Matrícula', keyboardType: TextInputType.number, validator: (v) => v!.isEmpty ? 'Campo obrigatório' : null),
                 const SizedBox(height: 16),
-                _buildTextFormField(controller: _cursoController, labelText: 'Curso', validator: (v) => v!.isEmpty ? 'Campo obrigatório' : null),
+                _buildTextFormField(theme, controller: _cursoController, labelText: 'Curso', validator: (v) => v!.isEmpty ? 'Campo obrigatório' : null),
               ],
 
               if (widget.tipoUsuario == 'tutor') ...[
                 const SizedBox(height: 24),
                 Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(border: Border.all(color: Colors.white54), borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(border: Border.all(color: theme.colorScheme.onSurface.withOpacity(0.4)), borderRadius: BorderRadius.circular(12)),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Icon(Icons.picture_as_pdf_outlined, color: Colors.white70), 
+                      const Icon(Icons.picture_as_pdf_outlined, color: AppColors.primaryBlue), 
                       const SizedBox(width: 12),
-                      Expanded(child: Text(_curriculoFile?.path.split(Platform.pathSeparator).last ?? 'Currículo (PDF, máx 5MB)', style: const TextStyle(color: Colors.white), overflow: TextOverflow.ellipsis)),
+                      Expanded(child: Text(_curriculoFile?.path.split(Platform.pathSeparator).last ?? 'Currículo (PDF, máx 5MB)', style: theme.textTheme.bodyMedium, overflow: TextOverflow.ellipsis)),
                       ElevatedButton(child: const Text('Anexar'), onPressed: _selecionarCurriculo),
                     ],
                   ),
@@ -177,10 +182,12 @@ class _CadastroScreenState extends State<CadastroScreen> {
               ],
 
               const SizedBox(height: 32),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.white, foregroundColor: const Color(0xFF0056A6), padding: const EdgeInsets.symmetric(vertical: 16)),
-                onPressed: _isLoading ? null : _fazerCadastro,
-                child: _isLoading ? const CircularProgressIndicator(color: Color(0xFF0056A6)) : const Text('Finalizar Cadastro', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _fazerCadastro,
+                  child: _isLoading ? const CircularProgressIndicator() : const Text('Finalizar Cadastro'),
+                ),
               ),
             ],
           ),
@@ -189,19 +196,20 @@ class _CadastroScreenState extends State<CadastroScreen> {
     );
   }
 
-  Widget _buildTextFormField({required TextEditingController controller, required String labelText, bool obscureText = false, String? Function(String?)? validator, TextInputType? keyboardType}) {
+  Widget _buildTextFormField(ThemeData theme, {required TextEditingController controller, required String labelText, bool obscureText = false, String? Function(String?)? validator, TextInputType? keyboardType}) {
     return TextFormField(
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
-      style: const TextStyle(color: Colors.white),
+      style: TextStyle(color: theme.colorScheme.onSurface),
       decoration: InputDecoration(
         labelText: labelText,
-        labelStyle: const TextStyle(color: Colors.white70),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.white54)),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.white, width: 2)),
-        errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.redAccent)),
-        focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.redAccent, width: 2)),
+        labelStyle: TextStyle(color: theme.colorScheme.onSurface.withOpacity(0.7)),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: theme.colorScheme.onSurface.withOpacity(0.4))),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: theme.colorScheme.primary, width: 2)),
+        errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: theme.colorScheme.error)),
+        focusedErrorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: theme.colorScheme.error, width: 2)),
       ),
       validator: validator,
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart';
 import '../models/tutor.dart';
 import '../models/area_conhecimento.dart';
 import '../services/area_conhecimento_service.dart';
@@ -57,13 +58,13 @@ class _AreasTutorScreenState extends State<AreasTutorScreen> {
           }
         });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Área atualizada com sucesso!'), backgroundColor: Colors.green),
+          SnackBar(content: const Text('Área atualizada com sucesso!'), backgroundColor: AppColors.success),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao atualizar área: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Erro ao atualizar área: $e'), backgroundColor: AppColors.error),
         );
       }
     }
@@ -71,26 +72,27 @@ class _AreasTutorScreenState extends State<AreasTutorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0A1A46),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('Minhas Áreas', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.transparent,
+        title: const Text('Minhas Áreas'),
+        backgroundColor: Colors.transparent, // Mantém a transparência para o design da tela escura
         elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: FutureBuilder<List<AreaConhecimento>>(
         future: _todasAreasFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting || _carregando) {
-            return const Center(child: CircularProgressIndicator(color: Colors.white));
+            return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasError) {
-            return Center(child: Text('Erro: ${snapshot.error}', style: const TextStyle(color: Colors.white)));
+            return Center(child: Text('Erro: ${snapshot.error}', style: theme.textTheme.bodyMedium));
           }
           final todasAreas = snapshot.data;
           if (todasAreas == null || todasAreas.isEmpty) {
-            return const Center(child: Text('Nenhuma área de conhecimento disponível.', style: TextStyle(color: Colors.white70)));
+            return Center(child: Text('Nenhuma área de conhecimento disponível.', style: theme.textTheme.bodyMedium));
           }
 
           return ListView.separated(
@@ -100,7 +102,7 @@ class _AreasTutorScreenState extends State<AreasTutorScreen> {
             itemBuilder: (context, index) {
               final area = todasAreas[index];
               final selecionada = _areasTutorIds.contains(area.id);
-              return _buildAreaCard(area, selecionada);
+              return _buildAreaCard(context, area, selecionada);
             },
           );
         },
@@ -108,20 +110,33 @@ class _AreasTutorScreenState extends State<AreasTutorScreen> {
     );
   }
 
-  Widget _buildAreaCard(AreaConhecimento area, bool selecionada) {
+  Widget _buildAreaCard(BuildContext context, AreaConhecimento area, bool selecionada) {
+    final theme = Theme.of(context);
+
+    // Define as cores com base na seleção e no tema (claro/escuro)
+    final Color cardColor = selecionada 
+        ? theme.colorScheme.primary.withOpacity(0.2) 
+        : theme.cardTheme.color!;
+    final Color borderColor = selecionada 
+        ? theme.colorScheme.primary
+        : theme.cardTheme.shape is RoundedRectangleBorder
+          ? ((theme.cardTheme.shape as RoundedRectangleBorder).side.color)
+          : theme.colorScheme.onSurface.withOpacity(0.2);
+    final Color iconColor = selecionada ? theme.colorScheme.primary : theme.colorScheme.onSurface.withOpacity(0.6);
+
     return Container(
-        decoration: BoxDecoration(
-          color: selecionada ? Colors.white.withOpacity(0.25) : Colors.white.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: selecionada ? Colors.cyanAccent : Colors.white.withOpacity(0.2)),
-        ),
-        child: ListTile(
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: (theme.cardTheme.shape as RoundedRectangleBorder).borderRadius,
+        border: Border.all(color: borderColor, width: 1.5),
+      ),
+      child: ListTile(
         contentPadding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-        title: Text(area.nome, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 16)),
-        subtitle: Text(area.descricao, style: const TextStyle(color: Colors.white70, height: 1.3)),
+        title: Text(area.nome, style: theme.textTheme.headlineSmall?.copyWith(fontSize: 16)),
+        subtitle: Text(area.descricao, style: theme.textTheme.bodyMedium),
         trailing: Icon(
           selecionada ? Icons.check_circle : Icons.radio_button_unchecked,
-          color: selecionada ? Colors.cyanAccent : Colors.white60,
+          color: iconColor,
           size: 28,
         ),
         onTap: () => _toggleArea(area.id),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../theme/app_theme.dart'; // 1. Importar o tema
 import '../models/estudante.dart';
 import '../models/agendamento.dart';
 import '../models/tutor.dart';
@@ -61,6 +62,7 @@ class _AgendamentosEstudanteScreenState extends State<AgendamentosEstudanteScree
   }
 
   Future<void> _cancelarAgendamento(Agendamento agendamento) async {
+    final theme = Theme.of(context);
     final confirmado = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -68,7 +70,10 @@ class _AgendamentosEstudanteScreenState extends State<AgendamentosEstudanteScree
         content: const Text('Deseja realmente cancelar este agendamento?'),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Não')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Sim', style: TextStyle(color: Colors.red))),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true), 
+            child: Text('Sim', style: TextStyle(color: theme.colorScheme.error)), // Usa a cor de erro do tema
+          ),
         ],
       ),
     );
@@ -88,29 +93,30 @@ class _AgendamentosEstudanteScreenState extends State<AgendamentosEstudanteScree
     }
   }
 
+  // 2. Usar as cores do AppColors
   Color _getStatusColor(Status status) {
     switch (status) {
-      case Status.aprovado: return Colors.green;
-      case Status.aguardandoAp: return Colors.orange;
-      case Status.negado: return Colors.red;
-      case Status.cancelado: return Colors.grey;
+      case Status.aprovado: return AppColors.success;
+      case Status.aguardandoAp: return AppColors.warning;
+      case Status.negado: return AppColors.error;
+      case Status.cancelado: return AppColors.darkGrey;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4F8),
+      backgroundColor: theme.scaffoldBackgroundColor, // 3. Usar a cor de fundo do tema
       appBar: AppBar(
-        title: const Text('Meus Agendamentos', style: TextStyle(color: Colors.black87)),
-        backgroundColor: Colors.white,
-        elevation: 1,
-        iconTheme: const IconThemeData(color: Colors.black87),
+        title: const Text('Meus Agendamentos'),
+        // 4. Estilo da AppBar agora é herdado do tema
       ),
       body: _carregando
           ? const Center(child: CircularProgressIndicator())
           : _agendamentosCompletos.isEmpty
-              ? const Center(child: Text('Nenhum agendamento encontrado.'))
+              ? Center(child: Text('Nenhum agendamento encontrado.', style: theme.textTheme.bodyMedium))
               : RefreshIndicator(
                   onRefresh: _carregarAgendamentos,
                   child: ListView.builder(
@@ -123,9 +129,7 @@ class _AgendamentosEstudanteScreenState extends State<AgendamentosEstudanteScree
                       final disponibilidade = item.disponibilidade;
 
                       return Card(
-                        margin: const EdgeInsets.only(bottom: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        elevation: 2,
+                        // 5. O estilo do Card é herdado do tema
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: Column(
@@ -135,24 +139,20 @@ class _AgendamentosEstudanteScreenState extends State<AgendamentosEstudanteScree
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
                                   Expanded(
-                                    child: Text(tutor.nome, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0056A6))),
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                    decoration: BoxDecoration(
-                                      color: _getStatusColor(agendamento.status).withOpacity(0.2),
-                                      borderRadius: BorderRadius.circular(20),
+                                    child: Text(
+                                      tutor.nome, 
+                                      style: theme.textTheme.headlineSmall?.copyWith(color: AppColors.primaryBlue, fontSize: 18), // 6. Estilo do texto padronizado
                                     ),
-                                    child: Text(agendamento.status.displayName, style: TextStyle(color: _getStatusColor(agendamento.status), fontWeight: FontWeight.w600, fontSize: 12)),
                                   ),
+                                  _buildStatusBadge(agendamento.status),
                                 ],
                               ),
                               const SizedBox(height: 10),
-                              Text('Data: ${DateFormat('dd/MM/yyyy', 'pt_BR').format(disponibilidade.dataHora)}', style: const TextStyle(color: Colors.black54)),
-                              Text('Hora: ${DateFormat('HH:mm', 'pt_BR').format(disponibilidade.dataHora)}', style: const TextStyle(color: Colors.black54)),
+                              Text('Data: ${DateFormat('dd/MM/yyyy', 'pt_BR').format(disponibilidade.dataHora)}', style: theme.textTheme.bodyMedium),
+                              Text('Hora: ${DateFormat('HH:mm', 'pt_BR').format(disponibilidade.dataHora)}', style: theme.textTheme.bodyMedium),
                               if (agendamento.motivoSolicitacao.isNotEmpty) ...[
                                 const SizedBox(height: 10),
-                                Text('Motivo: ${agendamento.motivoSolicitacao}', style: const TextStyle(color: Colors.black87)),
+                                Text('Motivo: ${agendamento.motivoSolicitacao}', style: theme.textTheme.bodyLarge),
                               ],
                               if (agendamento.status == Status.aguardandoAp || agendamento.status == Status.aprovado) ...[
                                 const SizedBox(height: 15),
@@ -160,7 +160,10 @@ class _AgendamentosEstudanteScreenState extends State<AgendamentosEstudanteScree
                                   width: double.infinity,
                                   child: OutlinedButton(
                                     onPressed: () => _cancelarAgendamento(agendamento),
-                                    style: OutlinedButton.styleFrom(foregroundColor: Colors.red, side: const BorderSide(color: Colors.red)),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: theme.colorScheme.error,
+                                      side: BorderSide(color: theme.colorScheme.error), // 7. Botão usa a cor de erro do tema
+                                    ),
                                     child: const Text('Cancelar Agendamento'),
                                   ),
                                 ),
@@ -172,6 +175,21 @@ class _AgendamentosEstudanteScreenState extends State<AgendamentosEstudanteScree
                     },
                   ),
                 ),
+    );
+  }
+
+  Widget _buildStatusBadge(Status status) {
+    final Color color = _getStatusColor(status);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        status.displayName, 
+        style: TextStyle(color: color, fontWeight: FontWeight.w600, fontSize: 12)
+      ),
     );
   }
 }
