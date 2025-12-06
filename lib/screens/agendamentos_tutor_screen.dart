@@ -117,6 +117,7 @@ class _AgendamentosTutorScreenState extends State<AgendamentosTutorScreen> {
     );
   }
 
+  // AJUSTE: Redução dos espaçamentos para um layout mais compacto
   Widget _buildAgendamentoCard(BuildContext context, Agendamento agendamento) {
     final theme = Theme.of(context);
     final studentName = agendamento.estudanteNome ?? 'Aluno não encontrado';
@@ -125,26 +126,26 @@ class _AgendamentosTutorScreenState extends State<AgendamentosTutorScreen> {
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(12.0), // Ajustado
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(studentName, style: theme.textTheme.headlineSmall?.copyWith(fontSize: 18)),
-            const SizedBox(height: 12),
+            Text(studentName, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8), // Ajustado
             Row(children: [
               Icon(Icons.calendar_today, size: 16, color: theme.textTheme.bodyMedium?.color),
               const SizedBox(width: 8),
               Text(DateFormat('dd/MM/yyyy', 'pt_BR').format(dataHora), style: theme.textTheme.bodyLarge)
             ]),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4), // Ajustado
             Row(children: [
               Icon(Icons.access_time, size: 16, color: theme.textTheme.bodyMedium?.color),
               const SizedBox(width: 8),
               Text(DateFormat('HH:mm', 'pt_BR').format(dataHora), style: theme.textTheme.bodyLarge)
             ]),
-            const Divider(height: 24),
+            const Divider(height: 16), // Ajustado
             Text('Motivo da Solicitação:', style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 6),
+            const SizedBox(height: 4), // Ajustado
             Text(agendamento.motivoSolicitacao, style: theme.textTheme.bodyMedium),
           ],
         ),

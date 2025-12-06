@@ -32,7 +32,7 @@ class FmpApp extends StatelessWidget {
       title: 'FMP - Sistema de Tutoria',
       theme: AppTheme.lightTheme,
       darkTheme: AppTheme.darkTheme,
-      themeMode: ThemeMode.system,
+      themeMode: ThemeMode.system, // Força o tema escuro para este exemplo
       initialRoute: '/',
       onGenerateRoute: (settings) {
         switch (settings.name) {
@@ -96,77 +96,78 @@ class _TelaEscolhaUsuarioState extends State<TelaEscolhaUsuario> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
+    // Forçando o fundo escuro para corresponder à imagem de referência
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: AppColors.darkBlue,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(24),
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Image.asset(
                   'assets/logo_fmp.png',
-                  height: 90,
+                  height: 70,
                 ),
                 const SizedBox(height: 40),
-                Container(
-                  padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
-                  decoration: BoxDecoration(
-                    color: theme.cardTheme.color,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        "Selecionar tipo de usuário",
-                        style: theme.textTheme.headlineSmall,
-                      ),
-                      const SizedBox(height: 25),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          _botaoUsuario("Estudante", Icons.person, "estudante"),
-                          _botaoUsuario("Tutor", Icons.school, "tutor"),
-                          _botaoUsuario("Coordenador", Icons.manage_accounts, "coordenador"),
-                        ],
-                      ),
-                      const SizedBox(height: 30),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () => _navegarPara('/login'),
-                          child: const Text("Entrar"),
+                Card(
+                  elevation: 8,
+                  shadowColor: Colors.black.withOpacity(0.2),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                  color: AppColors.white,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 30, horizontal: 20),
+                    child: Column(
+                      children: [
+                        const Text(
+                          "Selecionar tipo de usuário",
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textDark),
                         ),
-                      ),
-                      const SizedBox(height: 20),
-                      GestureDetector(
-                        onTap: () => _navegarPara('/cadastro'),
-                        child: Text.rich(
-                          TextSpan(
-                            text: "Não possui login? ",
-                            style: theme.textTheme.bodyMedium,
-                            children: [
-                              TextSpan(
-                                text: "Cadastre-se",
-                                style: TextStyle(
-                                  color: theme.colorScheme.primary,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
+                        const SizedBox(height: 25),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            _botaoUsuario("Estudante", Icons.person, "estudante"),
+                            _botaoUsuario("Tutor", Icons.school, "tutor"),
+                            _botaoUsuario("Coordenador", Icons.manage_accounts, "coordenador"),
+                          ],
+                        ),
+                        const SizedBox(height: 30),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primaryBlue,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                            onPressed: () => _navegarPara('/login'),
+                            child: const Text("Entrar"),
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 20),
+                        GestureDetector(
+                          onTap: () => _navegarPara('/cadastro'),
+                          child: const Text.rich(
+                            TextSpan(
+                              text: "Possui login? ", // Texto ajustado
+                              style: TextStyle(color: AppColors.darkGrey, fontSize: 14),
+                              children: [
+                                TextSpan(
+                                  text: "Cadastre-se",
+                                  style: TextStyle(
+                                    color: AppColors.primaryBlue,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -178,41 +179,33 @@ class _TelaEscolhaUsuarioState extends State<TelaEscolhaUsuario> {
   }
 
   Widget _botaoUsuario(String titulo, IconData icone, String valor) {
-    final theme = Theme.of(context);
-    final isDarkMode = theme.brightness == Brightness.dark;
     final bool selecionado = usuarioSelecionado == valor;
     
-    final Color backgroundColor = selecionado 
-      ? (isDarkMode ? AppColors.primaryBlue.withOpacity(0.3) : AppColors.primaryBlue.withOpacity(0.1))
-      : theme.cardTheme.color!;
-
-    final Color borderColor = selecionado 
-      ? AppColors.primaryBlue 
-      : (isDarkMode ? AppColors.mediumGrey.withOpacity(0.5) : AppColors.mediumGrey);
+    final Color backgroundColor = selecionado ? AppColors.primaryBlue.withOpacity(0.1) : AppColors.lightGrey;
+    final Color borderColor = selecionado ? AppColors.primaryBlue : AppColors.mediumGrey;
 
     return GestureDetector(
       onTap: () => setState(() => usuarioSelecionado = valor),
       child: Container(
-        width: 90,
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        width: 95,
+        padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           color: backgroundColor,
-          border: Border.all(
-            color: borderColor,
-            width: 2,
-          ),
+          border: Border.all(color: borderColor, width: 1.5),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icone, color: AppColors.primaryBlue, size: 32),
-            const SizedBox(height: 8),
+            Icon(icone, color: AppColors.primaryBlue, size: 30),
+            const SizedBox(height: 6),
             Text(
               titulo,
-              style: TextStyle(
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: AppColors.primaryBlue,
                 fontWeight: FontWeight.w600,
                 fontSize: 13,
-                color: AppColors.primaryBlue,
               ),
             ),
           ],

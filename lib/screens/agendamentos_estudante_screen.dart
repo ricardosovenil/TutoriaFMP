@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart'; // 1. Importar o tema
+import '../theme/app_theme.dart';
 import '../models/estudante.dart';
 import '../models/agendamento.dart';
 import '../models/tutor.dart';
@@ -72,7 +72,7 @@ class _AgendamentosEstudanteScreenState extends State<AgendamentosEstudanteScree
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Não')),
           TextButton(
             onPressed: () => Navigator.pop(context, true), 
-            child: Text('Sim', style: TextStyle(color: theme.colorScheme.error)), // Usa a cor de erro do tema
+            child: Text('Sim', style: TextStyle(color: theme.colorScheme.error)),
           ),
         ],
       ),
@@ -93,7 +93,6 @@ class _AgendamentosEstudanteScreenState extends State<AgendamentosEstudanteScree
     }
   }
 
-  // 2. Usar as cores do AppColors
   Color _getStatusColor(Status status) {
     switch (status) {
       case Status.aprovado: return AppColors.success;
@@ -108,10 +107,9 @@ class _AgendamentosEstudanteScreenState extends State<AgendamentosEstudanteScree
     final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor, // 3. Usar a cor de fundo do tema
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Meus Agendamentos'),
-        // 4. Estilo da AppBar agora é herdado do tema
       ),
       body: _carregando
           ? const Center(child: CircularProgressIndicator())
@@ -128,10 +126,10 @@ class _AgendamentosEstudanteScreenState extends State<AgendamentosEstudanteScree
                       final tutor = item.tutor;
                       final disponibilidade = item.disponibilidade;
 
+                      // AJUSTE: O Padding e os SizedBox foram reduzidos para um layout mais compacto
                       return Card(
-                        // 5. O estilo do Card é herdado do tema
                         child: Padding(
-                          padding: const EdgeInsets.all(16.0),
+                          padding: const EdgeInsets.all(12.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -141,28 +139,29 @@ class _AgendamentosEstudanteScreenState extends State<AgendamentosEstudanteScree
                                   Expanded(
                                     child: Text(
                                       tutor.nome, 
-                                      style: theme.textTheme.headlineSmall?.copyWith(color: AppColors.primaryBlue, fontSize: 18), // 6. Estilo do texto padronizado
+                                      style: theme.textTheme.titleLarge?.copyWith(color: AppColors.primaryBlue, fontWeight: FontWeight.bold),
                                     ),
                                   ),
                                   _buildStatusBadge(agendamento.status),
                                 ],
                               ),
-                              const SizedBox(height: 10),
+                              const SizedBox(height: 6),
                               Text('Data: ${DateFormat('dd/MM/yyyy', 'pt_BR').format(disponibilidade.dataHora)}', style: theme.textTheme.bodyMedium),
+                              const SizedBox(height: 2),
                               Text('Hora: ${DateFormat('HH:mm', 'pt_BR').format(disponibilidade.dataHora)}', style: theme.textTheme.bodyMedium),
                               if (agendamento.motivoSolicitacao.isNotEmpty) ...[
-                                const SizedBox(height: 10),
+                                const Divider(height: 12),
                                 Text('Motivo: ${agendamento.motivoSolicitacao}', style: theme.textTheme.bodyLarge),
                               ],
                               if (agendamento.status == Status.aguardandoAp || agendamento.status == Status.aprovado) ...[
-                                const SizedBox(height: 15),
+                                const SizedBox(height: 12),
                                 SizedBox(
                                   width: double.infinity,
                                   child: OutlinedButton(
                                     onPressed: () => _cancelarAgendamento(agendamento),
                                     style: OutlinedButton.styleFrom(
                                       foregroundColor: theme.colorScheme.error,
-                                      side: BorderSide(color: theme.colorScheme.error), // 7. Botão usa a cor de erro do tema
+                                      side: BorderSide(color: theme.colorScheme.error),
                                     ),
                                     child: const Text('Cancelar Agendamento'),
                                   ),
@@ -181,7 +180,7 @@ class _AgendamentosEstudanteScreenState extends State<AgendamentosEstudanteScree
   Widget _buildStatusBadge(Status status) {
     final Color color = _getStatusColor(status);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: color.withOpacity(0.15),
         borderRadius: BorderRadius.circular(20),
